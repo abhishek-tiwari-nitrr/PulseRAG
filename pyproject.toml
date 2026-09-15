@@ -1,0 +1,68 @@
+[project]
+name = "pulserag"
+version = "0.1.0"
+description = "Plugin-based RAG toolkit with a domain-agnostic core and a clinical-guideline (PulseRAG) project plugin."
+readme = "README.md"
+authors = [
+    { name = "Abhishek Tiwari", email = "abhishek.tiwari.nitrr@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    # ui
+    "streamlit>=1.40,<2",
+    # service layer
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30,<1",
+    "python-multipart>=0.0.9,<1",
+    # core
+    "pydantic>=2.9,<3",
+    "python-dotenv>=1.0,<2",
+    "pydantic-settings>=2.6,<3",
+    # rag pipleine
+    "llama-index-core>=0.12,<0.13",
+    "llama-index-embeddings-fastembed>=0.3,<0.4",
+    "llama-index-llms-openai>=0.4,<0.5",
+    "llama-index-readers-papers>=0.3,<0.4",
+    "llama-index-vector-stores-qdrant>=0.4,<0.5",
+    "fastembed>=0.4,<1",
+    "llama-parse>=0.6,<0.7",
+    "qdrant-client>=1.12,<1.16",
+    # eval
+    "deepeval>=2.0,<3",
+    # client
+    "httpx>=0.28,<0.29",
+    "requests>=2.32,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<9",
+  "pytest-cov>=6,<7"
+]
+
+[project.scripts]
+pulserag = "pulserag.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[[tool.mypy.overrides]]
+module = [
+  "deepeval.*",
+  "llama_index.*",
+  "llama_parse.*",
+  "qdrant_client.*",
+  "streamlit.*",
+]
+ignore_missing_imports = true
+
+[tool.uv]
+package = true
+
+
