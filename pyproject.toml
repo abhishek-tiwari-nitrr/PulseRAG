@@ -1,0 +1,21 @@
+[project]
+name = "pulserag"
+version = "0.1.0"
+description = "Clinical guideline question answering with retrieval grounding, as a Streamlit app."
+requires-python = ">=3.14"
+
+dependencies = [
+  # Dashboard
+  "streamlit>=1.46,<2",
+  # Configuration & Validation
+  "pydantic>=2.9,<3",
+  "pydantic-settings>=2.6,<3",
+  # RAG pipeline
+  "llama-index-core>=0.12,<0.13",
+  "llama-index-embeddings-openai>=0.3,<0.4",
+  "llama-index-llms-openai>=0.4,<0.5",
+  "llama-index-readers-papers>=0.3,<0.4",
+  "llama-index-vector-stores-qdrant>=0.4,<0.5",
+  "llama-parse>=0.6,<0.7",
+  "qdrant-client>=1.12,<1.16",
+]
