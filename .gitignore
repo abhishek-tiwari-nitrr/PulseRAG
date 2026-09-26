@@ -17,3 +17,6 @@ wheels/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# experiments
+Temp/
