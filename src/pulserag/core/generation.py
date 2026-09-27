@@ -25,7 +25,7 @@ def answer_question(
     """Answer question from idex and package the result."""
     engine = build_query_engine(index=index, config=config, settings=settings)
     response = engine.query(question)
-    source_node = list(getattr(response, "source_node", None) or [])
+    source_node = list(getattr(response, "source_nodes", None) or [])
     citations = _build_citations(source_node)
     confidence = _infer_confidence(source_node)
 
@@ -126,7 +126,7 @@ def _node_score(node: Any) -> float | None:
     if score is None:
         return None
     try:
-        return int(score)
+        return float(score)
     except TypeError, ValueError:
         return None
 
@@ -143,10 +143,4 @@ def _coerce_page(value: Any) -> int | None:
 
 def _node_metadata(node: Any) -> dict[str, Any]:
     """Return a node's retrieval score as a float or None if unavailable."""
-    score = getattr(node, "score", None)
-    if score is None:
-        return None
-    try:
-        return float(node)
-    except TypeError, ValueError:
-        return None
+    return getattr(getattr(node, "node", None), "metadata", None) or {}

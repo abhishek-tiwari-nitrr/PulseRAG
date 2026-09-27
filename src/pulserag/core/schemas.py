@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-ConfidenceLevel = Literal["high", "moderate", "low"]
+ConfidenceLevel = Literal["high", "medium", "low"]
 
 
 class Citation(BaseModel):

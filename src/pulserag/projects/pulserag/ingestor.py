@@ -76,6 +76,7 @@ class PulseRAGIngestor(DocumentIngestor):
                 metadata["source_org"] = "FDA"
             else:
                 metadata.setdefault("source_org", "WHO")
+            doc.metadata = metadata
         return docs
 
     # source loader

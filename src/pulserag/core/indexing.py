@@ -112,7 +112,7 @@ def build_index(
         },
     )
 
-    storage_context = StorageContext(vector_stores=build_vector_store(config, settings))
+    storage_context = StorageContext.from_defaults(vector_store=build_vector_store(config, settings))
 
     splitter = SentenceSplitter(
         chunk_overlap=settings.chunk_overlap, chunk_size=settings.chunk_size
@@ -125,7 +125,7 @@ def build_index(
         show_progress=True,
         embed_model=build_embed_model(settings),
     )
-    logger.info("Index Build Complete", extra={"collection", config.collection_name})
+    logger.info("Index Build Complete", extra={"collection": config.collection_name})
     return index
 
 

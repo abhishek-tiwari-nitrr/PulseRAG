@@ -28,3 +28,101 @@ style ST fill:#e8f5e9,stroke:#2e7d32
 ```
 ---
 
+## 3. Architecture
+
+```mermaid
+flowchart TB
+    EP["streamlit_app.py"] --> UI
+
+    subgraph UI["Presentation: pulserag.ui"]
+        APP["app.py: page shell, <br/>cached RAGService"]
+        Q["views/query.py"]
+        S["views/sources.py"]
+    end
+
+    subgraph SV["Application: pulserag.core.service"]
+        SVC["RAGService"]
+    end
+
+    subgraph EN["Engine: pulserag.core"]
+        IDX["indexing"] 
+        RET["retrieval"]
+        GEN["generation"]
+        REG["registry"]
+    end
+
+    subgraph FD["Foundations: pulserag.core"]
+        SET["settings"] 
+        LOG["logging"]
+        EXC["exceptions"]
+        SCH["schemas"]
+        PRJ["project (plugin)"]
+    end
+
+    PLG["Plugin: pulserag.projects.pulserag<br/>config (prompt, disclaimer, collection) + ingestor"]
+
+    APP --> SVC
+    Q --> SVC
+    S --> SVC
+    SVC --> IDX & GEN & REG
+    GEN --> RET
+    REG -.->|"lazy import"| PLG
+    PLG --> PRJ
+    EN --> FD
+```
+
+---
+## 4. Key flows
+
+### 4.1 Index rebuild
+```mermaid
+sequenceDiagram
+    actor Op as Operator
+    participant SRC as Sources tab
+    participant SVC as RAGService
+    participant ING as PulseRAGIngestor
+    participant IDX as indexing
+    participant OAI as OpenAI
+    participant QC as Qdrant Cloud
+
+    Op->>SRC: Rebuild index now
+    SRC->>SVC: rebuild_index()
+    SVC->>SVC: acquire lock (non-blocking) or RebuildInProgressError
+    SVC->>ING: ingest()
+    ING-->>SVC: labelled documents
+    alt no documents
+        SVC-->>SRC: CorpusEmptyError (existing index kept)
+    else documents
+        SVC->>IDX: build_index(documents)
+        IDX->>QC: delete collection
+        IDX->>OAI: embed chunks (batches of 8)
+        IDX->>QC: write vectors + metadata
+        SVC->>SVC: swap in new index, release lock
+        SVC-->>SRC: (documents, seconds)
+        SRC->>SRC: store notice, st.rerun()
+    end
+```
+
+### 4.2 Question answering
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant ASK as Ask Questions tab
+    participant SVC as RAGService
+    participant OAI as OpenAI
+    participant QC as Qdrant Cloud
+
+    User->>ASK: question
+    ASK->>SVC: query(question)
+    SVC->>SVC: ensure_index_loaded()
+    SVC->>OAI: embed question
+    SVC->>QC: top-k (10) similarity search
+    QC-->>SVC: scored chunks
+    SVC->>OAI: one compact completion with the plugin system prompt
+    OAI-->>SVC: answer
+    SVC->>SVC: citations, evidence, confidence, disclaimer
+    SVC-->>ASK: RAGResponse
+    ASK-->>User: rendered answer
+```
+

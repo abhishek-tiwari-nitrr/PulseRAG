@@ -11,7 +11,7 @@ from pulserag.core.service import RAGService
 __all__ = ["render"]
 _CONFIDENCE_HELP = {
     "high": ("success", "Several closely matching passages supported this answer."),
-    "moderate": (
+    "medium": (
         "info",
         "Some supporting material was found, but the match was partial.",
     ),
@@ -40,7 +40,7 @@ def render(service: RAGService) -> None:
     if not question:
         st.warning("Enter a question first")
         return
-    with st.spinner("Searching the knowledge abs e and drafting an answer..."):
+    with st.spinner("Searching the knowledge base and drafting an answer..."):
         try:
             response = service.query(question=question)
         except PulseRAGError as e:

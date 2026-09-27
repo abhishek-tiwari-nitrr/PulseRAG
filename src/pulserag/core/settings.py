@@ -35,7 +35,7 @@ class AppSettings(BaseSettings):
 
     # generation
     openai_api_key: SecretStr | None = Field(default=None)
-    openai_model: str = Field(default="gpt-5-mini")
+    openai_model: str = Field(default="gpt-4o-mini")
     openai_temperature: Annotated[float, Field(ge=0.0, le=2.0)] = Field(default=0.1)
     openai_timeout_seconds: Annotated[float, Field(gt=0)] = Field(default=60.0)
     openai_max_retries: Annotated[int, Field(ge=0, le=5)] = Field(default=3)

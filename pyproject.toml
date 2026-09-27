@@ -19,3 +19,11 @@ dependencies = [
   "llama-parse>=0.6,<0.7",
   "qdrant-client>=1.12,<1.16",
 ]
+
+
+[dependency-groups]
+dev = ["pytest>=9.1.1,<10"] 
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

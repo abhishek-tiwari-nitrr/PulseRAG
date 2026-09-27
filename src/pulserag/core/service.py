@@ -171,7 +171,7 @@ class RAGService:
 
     def rebuild_index(self) -> tuple[int, float]:
         """Re-ingest every source and rebuild the collection from Scratch."""
-        if self._index_lock.acquire(blocking=False):
+        if not self._index_lock.acquire(blocking=False):
             raise RebuildInProgressError("Another index rebuild is already running")
         started = time.perf_counter()
         try:
@@ -188,7 +188,7 @@ class RAGService:
                 config=self.config, settings=self.settings, documents=documents
             )
             self._index = new_index
-            duration = round(time.perf_counter - started, 2)
+            duration = round(time.perf_counter() - started, 2)
             logger.info(
                 "Index rebuild finished",
                 extra={
