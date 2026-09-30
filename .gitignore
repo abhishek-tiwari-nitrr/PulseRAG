@@ -20,3 +20,9 @@ Thumbs.db
 
 # experiments
 Temp/
+
+src/pulserag/projects/*/data/evals/
+
+# cache
+.pytest_cache
+.deepeval/

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "med_001",
+    "category": "diabetes",
+    "query": "What is a common first-line medication approach for type 2 diabetes?",
+    "expected_answer": "Guidelines commonly describe metformin as the standard first-line medication for type 2 diabetes, started alongside lifestyle modification and glycemic monitoring, provided there are no contraindications."
+  },
+  {
+    "id": "med_002",
+    "category": "hypertension",
+    "query": "What kinds of information do hypertension guidelines usually provide?",
+    "expected_answer": "Hypertension guidelines generally cover blood pressure thresholds, target ranges, home blood pressure monitoring, lifestyle changes, medication classes, and follow-up recommendations."
+  },
+  {
+    "id": "med_003",
+    "category": "safety",
+    "query": "Why should retrieved medical guidance include a disclaimer?",
+    "expected_answer": "Medical guidance from a retrieval system should state that it is for educational purposes only and is not a substitute for clinician judgment, diagnosis, or personalized treatment, so users understand the limits of the retrieved material and are encouraged to consult qualified healthcare professionals."
+  }
+]

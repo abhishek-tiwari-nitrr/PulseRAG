@@ -42,7 +42,7 @@ def render(service: RAGService) -> None:
         return
     with st.spinner("Searching the knowledge base and drafting an answer..."):
         try:
-            response = service.query(question=question)
+            response = service.query(question=question).response
         except PulseRAGError as e:
             st.error(e.detail)
             return

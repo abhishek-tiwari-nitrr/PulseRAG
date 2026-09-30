@@ -1,6 +1,6 @@
 [project]
 name = "pulserag"
-version = "0.1.0"
+version = "0.2.0"
 description = "Clinical guideline question answering with retrieval grounding, as a Streamlit app."
 requires-python = ">=3.14"
 
@@ -18,6 +18,8 @@ dependencies = [
   "llama-index-vector-stores-qdrant>=0.4,<0.5",
   "llama-parse>=0.6,<0.7",
   "qdrant-client>=1.12,<1.16",
+  # eval
+  "deepeval>=4.2.6,<5",
 ]
 
 

@@ -7,7 +7,7 @@ from typing import Any
 
 from pulserag.core.project import ProjectConfig
 from pulserag.core.retrieval import build_query_engine
-from pulserag.core.schemas import Citation, ConfidenceLevel, RAGResponse
+from pulserag.core.schemas import Citation, ConfidenceLevel, QueryArtifacts, RAGResponse
 from pulserag.core.settings import AppSettings
 
 logger = logging.getLogger(__name__)
@@ -17,17 +17,19 @@ _EVIDENCE_CHUNKS = 2
 _SNIPPET_CHARS = 500
 _STRONG_MATCH_SCORE = 0.55
 _WEAK_MATCH_SCORE = 0.35
+_CONTEXT_CHUNKS = 4
 
 
 def answer_question(
     index: Any, question: str, config: ProjectConfig, settings: AppSettings
-) -> RAGResponse:
+) -> QueryArtifacts:
     """Answer question from idex and package the result."""
     engine = build_query_engine(index=index, config=config, settings=settings)
     response = engine.query(question)
     source_node = list(getattr(response, "source_nodes", None) or [])
     citations = _build_citations(source_node)
     confidence = _infer_confidence(source_node)
+    retrieval_context = _context_snippets(source_node, limit=_CONTEXT_CHUNKS)
 
     logger.info(
         "Answer Question",
@@ -38,12 +40,15 @@ def answer_question(
             "top_score": _node_score(source_node[0]) if source_node else None,
         },
     )
-    return RAGResponse(
-        answer=str(response),
-        citations=citations,
-        confidence=confidence,
-        disclaimer=config.disclaimer,
-        evidence=_build_evidence_summary(source_node),
+    return QueryArtifacts(
+        response=RAGResponse(
+            answer=str(response),
+            citations=citations,
+            confidence=confidence,
+            disclaimer=config.disclaimer,
+            evidence=_build_evidence_summary(source_node),
+        ),
+        retrieval_context=retrieval_context,
     )
 
 

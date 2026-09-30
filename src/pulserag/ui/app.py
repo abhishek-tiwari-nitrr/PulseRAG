@@ -7,7 +7,7 @@ import streamlit as st
 from pulserag.core.logging import configure_logging
 from pulserag.core.service import RAGService
 from pulserag.core.settings import get_settings
-from pulserag.ui.views import query, sources
+from pulserag.ui.views import evaluations, query, sources
 
 __all__ = ["main"]
 
@@ -48,8 +48,10 @@ def main() -> None:
     _render_status_strip(service)
     st.divider()
 
-    query_tab, sources_tab = st.tabs(["Ask Questions", "Sources"])
+    query_tab, sources_tab, evaluation_tab = st.tabs(["Ask Questions", "Sources", "Evaluation"])
     with query_tab:
         query.render(service)
     with sources_tab:
         sources.render(service)
+    with evaluation_tab:
+        evaluations.render(service)

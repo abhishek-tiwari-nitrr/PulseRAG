@@ -24,11 +24,17 @@ class ProjectConfig:
     system_prompt: str
     disclaimer: str
     data_dir: Path
+    golden_dataset_path: Path
 
     @property
     def guideline_dir(self):
         """Dir holding operator supplied source pdfs."""
         return self.data_dir / "guidelines"
+
+    @property
+    def eval_result_dir(self):
+        """Dir holding evaualtion results."""
+        return self.data_dir / "evals"
 
 
 class DocumentIngestor(ABC):

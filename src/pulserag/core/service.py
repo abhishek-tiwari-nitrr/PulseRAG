@@ -24,7 +24,7 @@ from pulserag.core.indexing import (
 )
 from pulserag.core.project import ProjectConfig
 from pulserag.core.registry import ProjectDefinition, get_project_definition
-from pulserag.core.schemas import RAGResponse, ReadinessCheck
+from pulserag.core.schemas import QueryArtifacts, ReadinessCheck
 from pulserag.core.settings import AppSettings
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class RAGService:
         self._rebuilding = False
 
     @classmethod
-    def from_settings(cls, settings: AppSettings) -> RAGResponse:
+    def from_settings(cls, settings: AppSettings) -> RAGService:
         """Build a service for the project named by ACTIVE_PROJECT."""
         try:
             definition = get_project_definition(settings.active_project, settings)
@@ -134,7 +134,7 @@ class RAGService:
             return ReadinessCheck(
                 name="embedding_dimensions",
                 healthy=True,
-                detail="collection uses multiple or unnamed vectors; size not verified",
+                details="collection uses multiple or unnamed vectors; size not verified",
             )
         if actual != expected:
             return ReadinessCheck(
@@ -203,7 +203,7 @@ class RAGService:
             self._index_lock.release()
 
     # query
-    def query(self, question: str) -> RAGResponse:
+    def query(self, question: str) -> QueryArtifacts:
         """Answer a question from indexed corpus."""
         index = self.ensure_index_loaded()
         try:

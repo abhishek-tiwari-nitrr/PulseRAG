@@ -32,4 +32,5 @@ def build_pulserag_config(settings: AppSettings) -> ProjectConfig:
         system_prompt=SYSTEM_PROMPT,
         disclaimer=DISCLAIMER,
         data_dir=data_dir,
+        golden_dataset_path=project_package / "datasets" / "golden_dataset.json",
     )

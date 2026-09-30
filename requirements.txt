@@ -3,13 +3,17 @@
 aiohappyeyeballs==2.7.1
     # via aiohttp
 aiohttp==3.14.3
-    # via llama-index-core
+    # via
+    #   deepeval
+    #   llama-index-core
 aiosignal==1.4.0
     # via aiohttp
 aiosqlite==0.22.1
     # via llama-index-core
 altair==6.3.0
     # via streamlit
+annotated-doc==0.0.5
+    # via typer
 annotated-types==0.8.0
     # via pydantic
 anyio==4.15.1
@@ -25,6 +29,8 @@ attrs==26.1.0
     #   aiohttp
     #   jsonschema
     #   referencing
+backoff==2.2.1
+    # via posthog
 banks==2.5.1
     # via llama-index-core
 certifi==2026.7.22
@@ -35,8 +41,9 @@ certifi==2026.7.22
     #   requests
 charset-normalizer==3.5.1
     # via requests
-click==8.5.0
+click==8.1.8
     # via
+    #   deepeval
     #   llama-cloud-services
     #   nltk
     #   streamlit
@@ -45,10 +52,15 @@ cloudpickle==3.1.2
     # via joblib
 colorama==0.4.6
     # via
+    #   click
     #   griffecli
+    #   pytest
     #   tqdm
+    #   typer
 dataclasses-json==0.6.7
     # via llama-index-core
+deepeval==4.2.6
+    # via pulserag
 defusedxml==0.7.1
     # via
     #   llama-index-readers-papers
@@ -61,7 +73,11 @@ deprecated==1.3.1
 dirtyjson==1.0.8
     # via llama-index-core
 distro==1.9.0
-    # via openai
+    # via
+    #   openai
+    #   posthog
+execnet==2.1.2
+    # via pytest-xdist
 feedparser==6.0.14
     # via arxiv
 feedparser-sgmllib==2.1.0
@@ -88,6 +104,7 @@ griffelib==2.3.0
     #   griffecli
 grpcio==1.84.0
     # via
+    #   deepeval
     #   llama-index-vector-stores-qdrant
     #   qdrant-client
 h11==0.16.0
@@ -116,12 +133,15 @@ idna==3.20
     #   httpx
     #   requests
     #   yarl
+iniconfig==2.3.0
+    # via pytest
 itsdangerous==2.2.0
     # via streamlit
 jinja2==3.1.6
     # via
     #   altair
     #   banks
+    #   deepeval
     #   pydeck
 jiter==0.17.0
     # via openai
@@ -157,10 +177,14 @@ llama-index-workflows==1.3.0
     # via llama-index-core
 llama-parse==0.6.94
     # via pulserag
+markdown-it-py==4.2.0
+    # via rich
 markupsafe==3.0.3
     # via jinja2
 marshmallow==3.26.2
     # via dataclasses-json
+mdurl==0.1.2
+    # via markdown-it-py
 multidict==6.9.1
     # via
     #   aiohttp
@@ -170,7 +194,9 @@ mypy-extensions==1.1.0
 narwhals==2.26.0
     # via altair
 nest-asyncio==1.6.0
-    # via llama-index-core
+    # via
+    #   deepeval
+    #   llama-index-core
 networkx==3.7
     # via llama-index-core
 nltk==3.10.3
@@ -184,14 +210,27 @@ numpy==2.5.3
     #   streamlit
 openai==1.109.1
     # via
+    #   deepeval
     #   llama-index-embeddings-openai
     #   llama-index-llms-openai
+opentelemetry-api==1.45.0
+    # via
+    #   deepeval
+    #   opentelemetry-sdk
+    #   opentelemetry-semantic-conventions
+opentelemetry-sdk==1.45.0
+    # via deepeval
+opentelemetry-semantic-conventions==0.66b0
+    # via opentelemetry-sdk
 packaging==26.3
     # via
     #   altair
     #   llama-cloud-services
     #   marshmallow
+    #   pytest
+    #   pytest-rerunfailures
     #   streamlit
+    #   wheel
 pandas==3.0.6
     # via streamlit
 pillow==12.3.0
@@ -203,8 +242,16 @@ platformdirs==4.11.13
     #   banks
     #   llama-cloud-services
     #   llama-index-core
+pluggy==1.6.0
+    # via pytest
 portalocker==3.2.0
-    # via qdrant-client
+    # via
+    #   deepeval
+    #   qdrant-client
+posthog==7.60.1
+    # via deepeval
+prompt-toolkit==3.0.53
+    # via questionary
 propcache==0.5.4
     # via
     #   aiohttp
@@ -218,6 +265,7 @@ pyarrow==25.0.1
 pydantic==2.13.5
     # via
     #   banks
+    #   deepeval
     #   llama-cloud
     #   llama-cloud-services
     #   llama-index-core
@@ -230,13 +278,37 @@ pydantic==2.13.5
 pydantic-core==2.46.5
     # via pydantic
 pydantic-settings==2.15.0
-    # via pulserag
+    # via
+    #   deepeval
+    #   pulserag
 pydeck==0.9.3
     # via streamlit
+pyfiglet==1.0.4
+    # via deepeval
+pygments==2.21.0
+    # via
+    #   pytest
+    #   rich
+pytest==9.1.1
+    # via
+    #   deepeval
+    #   pytest-asyncio
+    #   pytest-repeat
+    #   pytest-rerunfailures
+    #   pytest-xdist
+pytest-asyncio==1.4.0
+    # via deepeval
+pytest-repeat==0.9.4
+    # via deepeval
+pytest-rerunfailures==12.0
+    # via deepeval
+pytest-xdist==3.8.0
+    # via deepeval
 python-dateutil==2.9.0.post0
     # via pandas
 python-dotenv==1.2.3
     # via
+    #   deepeval
     #   llama-cloud-services
     #   pydantic-settings
 python-multipart==0.0.32
@@ -249,6 +321,8 @@ qdrant-client==1.15.1
     # via
     #   llama-index-vector-stores-qdrant
     #   pulserag
+questionary==2.1.1
+    # via deepeval
 referencing==0.37.0
     # via
     #   jsonschema
@@ -260,15 +334,25 @@ regex==2026.9.10
 requests==2.32.5
     # via
     #   arxiv
+    #   deepeval
     #   llama-index-core
+    #   posthog
     #   streamlit
     #   tiktoken
+rich==13.9.4
+    # via
+    #   deepeval
+    #   typer
 rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
 setuptools==84.0.0
-    # via llama-index-core
+    # via
+    #   deepeval
+    #   llama-index-core
+shellingham==1.5.4
+    # via typer
 six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
@@ -279,8 +363,11 @@ starlette==1.7.0
     # via streamlit
 streamlit==1.64.0
     # via pulserag
-tenacity==9.1.4
+tabulate==0.9.0
+    # via deepeval
+tenacity==9.0.0
     # via
+    #   deepeval
     #   llama-cloud-services
     #   llama-index-core
 tiktoken==0.14.0
@@ -289,9 +376,12 @@ toml==0.10.2
     # via streamlit
 tqdm==4.70.1
     # via
+    #   deepeval
     #   llama-index-core
     #   nltk
     #   openai
+typer==0.27.2
+    # via deepeval
 typing-extensions==4.16.0
     # via
     #   altair
@@ -300,6 +390,10 @@ typing-extensions==4.16.0
     #   llama-index-core
     #   llama-index-workflows
     #   openai
+    #   opentelemetry-api
+    #   opentelemetry-sdk
+    #   opentelemetry-semantic-conventions
+    #   posthog
     #   pydantic
     #   pydantic-core
     #   sqlalchemy
@@ -324,8 +418,12 @@ uvicorn==0.54.0
     # via streamlit
 watchdog==6.0.0 ; sys_platform != 'darwin'
     # via streamlit
+wcwidth==0.9.1
+    # via prompt-toolkit
 websockets==16.1.1
     # via streamlit
+wheel==0.48.0
+    # via deepeval
 wrapt==2.4.1
     # via
     #   deprecated

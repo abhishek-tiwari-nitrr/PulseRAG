@@ -52,6 +52,26 @@ class PulseRAGIngestor(DocumentIngestor):
                 "education, and individualized nutrition planning."
             ),
         },
+                {
+            "title": "Hypertension guideline overview",
+            "text": (
+                "Hypertension guidelines generally cover blood pressure thresholds, "
+                "target ranges, home blood pressure monitoring, lifestyle changes, and "
+                "medication classes such as ACE inhibitors, ARBs, calcium-channel "
+                "blockers, and thiazide-type diuretics. Follow-up cadence depends on "
+                "severity, symptoms, and treatment response."
+            ),
+        },
+        {
+            "title": "Why medical guidance should include a disclaimer",
+            "text": (
+                "Medical guidance in retrieval-augmented systems should include a disclaimer "
+                "that the information is for educational purposes only and is not a substitute "
+                "for clinician judgment, diagnosis, or personalized treatment. The disclaimer "
+                "helps users understand the limits of the retrieved material and encourages "
+                "consultation with qualified healthcare professionals."
+            ),
+        },
     )
 
     # document ingestor
