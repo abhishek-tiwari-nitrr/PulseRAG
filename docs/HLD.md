@@ -12,69 +12,63 @@ PulseRAG answers questions about published clinical guidance using only an index
 
 ```mermaid
 flowchart LR
-U(("User")) -->|HTTPS| ST
-
-subgraph ST["Streamlit App"]
-UI["Dashboard"] --> ENG["Engine"]
-end
-
-ENG -->|"vectors"| QC[("Qdrant Cloud")]
-ENG -->|"embeddings, answers, judges"| OAI["OpenAI"]
-UI -->|"input and output checks"| GRQ["Groq"]
-ENG -->|"PDF parsing"| LP["LlamaCloud (LlamaParse)"]
-ENG -->|"abstracts"| PM["PubMed"]
-
-style ST fill:#e8f5e9,stroke:#2e7d32
+    U(("Users")) --> ST
+    subgraph ST["Streamlit app: one process"]
+        UI["Dashboard"] --> SVC["RAGService"]
+        UI --> EV["Evaluation runner"]
+        EV --> SVC
+    end
+    SVC --> QC[("Qdrant Cloud")]
+    SVC --> OAI["OpenAI: embeddings, gpt-4o-mini"]
+    SVC --> LP["LlamaParse"]
+    SVC --> PM["PubMed"]
+    EV --> JDG["OpenAI: gpt-4o judges (DeepEval)"]
 ```
+
 ---
 
 ## 3. Architecture
 
 ```mermaid
 flowchart TB
-    EP["streamlit_app.py"] --> UI
-
-    subgraph UI["Presentation: pulserag.ui"]
-        APP["app.py: page shell, <br/>cached RAGService"]
-        Q["views/query.py"]
-        S["views/sources.py"]
+    EP["streamlit_app.py"] --> APP
+    subgraph UIL["pulserag.ui"]
+        APP["app.py"]
+        VQ["views/query.py"]
+        VS["views/sources.py"]
+        VE["views/evaluations.py"]
+        FMT["formatting.py"]
     end
-
-    subgraph SV["Application: pulserag.core.service"]
-        SVC["RAGService"]
-    end
-
-    subgraph EN["Engine: pulserag.core"]
-        IDX["indexing"] 
+    subgraph CORE["pulserag.core"]
+        SVC["service"]
+        IDX["indexing"]
         RET["retrieval"]
         GEN["generation"]
         REG["registry"]
+        FND["settings, logging, exceptions, schemas, project"]
+        EVL["evaluation: metrics, runner"]
     end
-
-    subgraph FD["Foundations: pulserag.core"]
-        SET["settings"] 
-        LOG["logging"]
-        EXC["exceptions"]
-        SCH["schemas"]
-        PRJ["project (plugin)"]
-    end
-
-    PLG["Plugin: pulserag.projects.pulserag<br/>config (prompt, disclaimer, collection) + ingestor"]
-
-    APP --> SVC
-    Q --> SVC
-    S --> SVC
-    SVC --> IDX & GEN & REG
+    PLG["projects.pulserag: config, ingestor, golden dataset"]
+    APP --> VQ
+    APP --> VS
+    VQ --> SVC
+    VS --> SVC
+    SVC --> IDX
+    SVC --> GEN
     GEN --> RET
-    REG -.->|"lazy import"| PLG
-    PLG --> PRJ
-    EN --> FD
+    SVC --> REG
+    REG -.->|"lazy"| PLG
+    APP --> VE
+    VE --> EVL
+    EVL --> SVC
+    style PLG fill:#fff3e0,stroke:#ef6c00
 ```
 
 ---
 ## 4. Key flows
 
-### 4.1 Index rebuild
+### 4.1 Index Rebuild
+
 ```mermaid
 sequenceDiagram
     actor Op as Operator
@@ -82,47 +76,59 @@ sequenceDiagram
     participant SVC as RAGService
     participant ING as PulseRAGIngestor
     participant IDX as indexing
-    participant OAI as OpenAI
     participant QC as Qdrant Cloud
-
     Op->>SRC: Rebuild index now
     SRC->>SVC: rebuild_index()
-    SVC->>SVC: acquire lock (non-blocking) or RebuildInProgressError
-    SVC->>ING: ingest()
-    ING-->>SVC: labelled documents
+    SVC->>SVC: lock (non-blocking) or RebuildInProgressError
+    SVC->>ING: ingest() PDFs, PubMed, seed documents
     alt no documents
-        SVC-->>SRC: CorpusEmptyError (existing index kept)
+        SVC-->>SRC: CorpusEmptyError (old index kept)
     else documents
-        SVC->>IDX: build_index(documents)
-        IDX->>QC: delete collection
-        IDX->>OAI: embed chunks (batches of 8)
+        SVC->>IDX: build_index()
+        IDX->>QC: drop collection
+        IDX->>IDX: chunk (1024/100), embed with OpenAI
         IDX->>QC: write vectors + metadata
-        SVC->>SVC: swap in new index, release lock
-        SVC-->>SRC: (documents, seconds)
-        SRC->>SRC: store notice, st.rerun()
+        SVC->>SVC: swap in new index, unlock
+        SRC->>SRC: notice in session_state, st.rerun()
     end
 ```
 
-### 4.2 Question answering
+### 4.2 Question Answering
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant ASK as Ask Questions tab
+    participant ASK as Ask tab
     participant SVC as RAGService
     participant OAI as OpenAI
     participant QC as Qdrant Cloud
-
     User->>ASK: question
-    ASK->>SVC: query(question)
-    SVC->>SVC: ensure_index_loaded()
+    ASK->>SVC: query()
     SVC->>OAI: embed question
-    SVC->>QC: top-k (10) similarity search
-    QC-->>SVC: scored chunks
-    SVC->>OAI: one compact completion with the plugin system prompt
-    OAI-->>SVC: answer
-    SVC->>SVC: citations, evidence, confidence, disclaimer
-    SVC-->>ASK: RAGResponse
-    ASK-->>User: rendered answer
+    SVC->>QC: top-10 search
+    SVC->>OAI: one compact completion
+    SVC-->>ASK: QueryArtifacts
+    ASK-->>User: answer, confidence, citations, disclaimer
+```
+
+### 4.3 Evaluation Run
+
+```mermaid
+sequenceDiagram
+    actor Op as Operator
+    participant TAB as Evaluation tab
+    participant RUN as runner
+    participant SVC as RAGService
+    participant DE as DeepEval judges
+    Op->>TAB: Run evaluation
+    TAB->>RUN: run_evaluation(service)
+    RUN->>SVC: collection_ready() or IndexNotReadyError
+    RUN->>RUN: load dataset, skip cases whose sources were not indexed
+    loop applicable cases
+        RUN->>SVC: query(case)
+        RUN->>DE: 3 metrics
+    end
+    RUN->>RUN: project/data/evals/pulserag_latest.json
+    TAB-->>Op: report
 ```
 

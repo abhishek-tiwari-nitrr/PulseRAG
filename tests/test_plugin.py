@@ -23,7 +23,7 @@ def test_seed_documents_are_the_whole_corpus_when_other_sources_are_off(config, 
 
     documents = PulseRAGIngestor(config, settings).ingest()
 
-    assert len(documents) == 2
+    assert len(documents) == 4
     assert {doc.metadata["source_org"] for doc in documents} == {"Bootstrap"}
 
 

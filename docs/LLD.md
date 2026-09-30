@@ -24,16 +24,22 @@ PulseRAG/
     │   ├── indexing.py        Qdrant, build and load the index
     │   ├── retrieval.py       search + LLM settings
     │   ├── generation.py      citations, evidence, confidence
-    │   └── service.py         RAGService
+    │   ├── service.py         RAGService
+    │   └── evaluation/
+    │       ├── metrics.py
+    │       └── runner.py
     ├── projects/pulserag/     SIDE BUILDING: the medical plugin
     │   ├── config.py          prompt, disclaimer, collection name
     │   ├── ingestor.py        loads PDF, PubMed, seed documents
-    │   └── data/guidelines/WHO_BP.pdf
+    │   ├── data/guidelines    WHO_BP.pdf
+    │   └── datasets/          golden_dataset.json
     └── ui/
         ├── app.py             page frame, status strip, tabs
         └── views/
             ├── query.py       Ask Questions tab
-            └── sources.py     Sources tab (Rebuild button)
+            ├── sources.py     Sources tab (Rebuild button)
+            ├── formatting.py 
+            └── evaluations.py Evaluations tab 
 ```
 
 ---
@@ -43,79 +49,48 @@ PulseRAG/
 ```mermaid
 classDiagram
     class AppSettings {
-        <<pydantic BaseSettings, frozen>>
+        <<frozen, 24 fields>>
         qdrant_url: str
-        qdrant_api_key: SecretStr
         openai_api_key: SecretStr
-        openai_model = "gpt-4o-mini"
-        embedding_model = "text-embedding-3-small"
-        embedding_dimensions = 512
-        chunk_size = 512
-        chunk_overlap = 100
-        similarity_top_k = 10
-        similarity_cutoff: float
-        max_guideline_files = 3
         secret(value) str
     }
     class ProjectConfig {
-        <<dataclass, frozen>>
         name
         collection_name
         system_prompt
         disclaimer
         data_dir: Path
-        guidelines_dir() Path
-    }
-    class DocumentIngestor {
-        <<abstract>>
-        config: ProjectConfig
-        settings: AppSettings
-        load_and_parse()* List~Document~
-        enrich_metadata(docs)* List~Document~
-        ingest() List~Document~
-    }
-    class PulseRAGIngestor
-    class ProjectDefinition {
-        <<dataclass, frozen>>
-        config: ProjectConfig
-        ingestor_class: type~DocumentIngestor~
+        golden_dataset_path: Path
     }
     class RAGService {
-        definition: ProjectDefinition
-        settings: AppSettings
-        _index: VectorStoreIndex
-        _index_lock: Lock
-        _rebuilding: bool
         from_settings(settings)$
-        readiness_checks() List~ReadinessCheck~
+        readiness_checks()
         ensure_index_loaded()
         rebuild_index() tuple
-        query(question) RAGResponse
+        query(question) QueryArtifacts
     }
     class RAGResponse {
-        answer: str
-        evidence: str
+        answer
+        evidence
         citations: List~Citation~
-        confidence: str
-        disclaimer: str
+        confidence
+        disclaimer
     }
     class Citation {
-        label: str
-        source_org: str
-        score: float
+        label
+        source_org
+        score
     }
-    class ReadinessCheck {
-        name: str
-        healthy: bool
-        detail: str
-    }
-
-    DocumentIngestor <|-- PulseRAGIngestor
-    ProjectDefinition --> ProjectConfig
-    ProjectDefinition ..> DocumentIngestor
-    RAGService --> ProjectDefinition
+    RAGService --> ProjectConfig
     RAGService --> AppSettings
-    RAGService ..> RAGResponse
-    RAGService ..> ReadinessCheck
     RAGResponse --> Citation
+    class QueryArtifacts {
+        response: RAGResponse
+        retrieval_context: List~str~
+    }
+    class EvalReport {
+        summary: EvalSummary
+        cases: List~EvalCaseResult~
+    }
+    QueryArtifacts --> RAGResponse
 ```
