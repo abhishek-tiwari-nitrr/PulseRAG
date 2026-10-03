@@ -48,7 +48,13 @@ class AppSettings(BaseSettings):
     embedding_batch_size: Annotated[int, Field(ge=1, le=10)] = Field(default=8)
 
     # guardrails
+    guardrails_enabled: bool = Field(default=True)
     groq_api_key: SecretStr | None = Field(default=None)
+    groq_timeout_seconds: Annotated[float, Field(gt=0)] = Field(default=30.0)
+    groq_max_retries: Annotated[int, Field(ge=0, le=5)] = Field(default=1)
+    groq_prompt_guard_model: str = Field(default="meta-llama/llama-prompt-guard-2-86m")
+    groq_safeguard_model: str = Field(default="openai/gpt-oss-120b")
+    prompt_guard_threshold: Annotated[float, Field(ge=0.0, le=1.0)] = Field(default=0.5)
 
     # chunking
     # 2^7 = 128 to 2^13 = 8192
@@ -92,6 +98,11 @@ class AppSettings(BaseSettings):
                 f"CHUNK_OVERLAP: {self.chunk_overlap} must be smaller than CHUNK_SIZE: {self.chunk_size}"
             )
         return self
+
+    @property
+    def guardrails_active(self) -> bool:
+        """Whether guardrails call will actually reach Groq."""
+        return self.guardrails_enabled and self.groq_api_key is not None
 
     def secret(self, value: SecretStr | None) -> str | None:
         """Keeping keys wrapped."""

@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from pulserag.core.exceptions import PulseRAGError
+from pulserag.core.guardrails import check_prompt_injection, check_safeguard_policy
 from pulserag.core.schemas import RAGResponse
 from pulserag.core.service import RAGService
 
@@ -42,11 +43,14 @@ def render(service: RAGService) -> None:
         return
     with st.spinner("Searching the knowledge base and drafting an answer..."):
         try:
-            response = service.query(question=question).response
+            result = _answer(service=service, question=question)
         except PulseRAGError as e:
             st.error(e.detail)
             return
-    _render_answer(response=response)
+    if isinstance(result, str):
+        _render_blocked(result)
+        return
+    _render_answer(result)
 
 
 def _render_answer(response: RAGResponse) -> None:
@@ -79,3 +83,17 @@ def _render_answer(response: RAGResponse) -> None:
         st.write(response.evidence)
 
     st.info(response.disclaimer)
+
+def _answer(service: RAGService, question: str) -> RAGResponse | str:
+    verdict = check_prompt_injection(question=question, settings=service.settings)
+    if not verdict.allowed:
+        return f"Blocked at input: {verdict.reason}"
+    response = service.query(question).response
+    verdict = check_safeguard_policy(question=question, answer = response.answer, policy=service.config.safeguard_policy, settings=service.settings)
+    if not verdict.allowed:
+        return f"Blocked at output: {verdict.reason}"
+    return response
+
+def _render_blocked(reason: str) -> None:
+    st.error("This Request was blocked by safety guardrail.")
+    st.caption(reason)

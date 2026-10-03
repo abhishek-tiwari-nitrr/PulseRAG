@@ -25,6 +25,7 @@ class ProjectConfig:
     disclaimer: str
     data_dir: Path
     golden_dataset_path: Path
+    safeguard_policy: str
 
     @property
     def guideline_dir(self):

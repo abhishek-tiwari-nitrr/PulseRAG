@@ -1590,10 +1590,11 @@ wheels = [
 
 [[package]]
 name = "pulserag"
-version = "0.2.0"
+version = "0.3.0"
 source = { virtual = "." }
 dependencies = [
     { name = "deepeval" },
+    { name = "httpx" },
     { name = "llama-index-core" },
     { name = "llama-index-embeddings-openai" },
     { name = "llama-index-llms-openai" },
@@ -1614,6 +1615,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "deepeval", specifier = ">=4.2.6,<5" },
+    { name = "httpx", specifier = ">=0.28,<0.29" },
     { name = "llama-index-core", specifier = ">=0.12,<0.13" },
     { name = "llama-index-embeddings-openai", specifier = ">=0.3,<0.4" },
     { name = "llama-index-llms-openai", specifier = ">=0.4,<0.5" },
