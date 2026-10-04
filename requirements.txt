@@ -124,6 +124,7 @@ httpx==0.28.1
     #   llama-cloud
     #   llama-index-core
     #   openai
+    #   pulserag
     #   qdrant-client
 hyperframe==6.1.0
     # via h2

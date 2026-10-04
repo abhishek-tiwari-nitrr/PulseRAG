@@ -24,10 +24,8 @@ def _render_status_strip(service: RAGService) -> None:
     """Show which project is served and whether it can answer questions."""
     problems = [check for check in service.readiness_check() if not check.healthy]
 
-    columns = st.columns(3)
-    columns[0].metric("Project", service.config.name)
-    columns[1].metric("Status", "Not ready" if problems else "Ready")
-    columns[2].metric("Collection", service.config.collection_name)
+    columns = st.columns(1)
+    columns[0].metric("Status", "Not ready" if problems else "Ready")
 
     if problems:
         st.warning(

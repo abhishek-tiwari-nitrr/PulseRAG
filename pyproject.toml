@@ -1,6 +1,6 @@
 [project]
 name = "pulserag"
-version = "0.3.0"
+version = "1.0.0"
 description = "Clinical guideline question answering with retrieval grounding, as a Streamlit app."
 requires-python = ">=3.14"
 

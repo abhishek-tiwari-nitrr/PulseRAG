@@ -25,21 +25,24 @@ PulseRAG/
     │   ├── retrieval.py       search + LLM settings
     │   ├── generation.py      citations, evidence, confidence
     │   ├── service.py         RAGService
+    │   ├── guardrails.py      Check Prompt Injection and Safeguard Policy
+    │   ├── sources.py
     │   └── evaluation/
     │       ├── metrics.py
     │       └── runner.py
     ├── projects/pulserag/     SIDE BUILDING: the medical plugin
     │   ├── config.py          prompt, disclaimer, collection name
     │   ├── ingestor.py        loads PDF, PubMed, seed documents
-    │   ├── data/guidelines    WHO_BP.pdf
+    │   ├── data/guidelines/   WHO_BP.pdf
     │   └── datasets/          golden_dataset.json
     └── ui/
         ├── app.py             page frame, status strip, tabs
+        ├── formatting.py 
         └── views/
             ├── query.py       Ask Questions tab
             ├── sources.py     Sources tab (Rebuild button)
-            ├── formatting.py 
-            └── evaluations.py Evaluations tab 
+            ├── evaluations.py Evaluations tab 
+            └── guardrails.py  
 ```
 
 ---
@@ -49,10 +52,13 @@ PulseRAG/
 ```mermaid
 classDiagram
     class AppSettings {
-        <<frozen, 24 fields>>
+        <<frozen, 32 fields>>
         qdrant_url: str
-        openai_api_key: SecretStr
-        secret(value) str
+        openai_api_key: SecretStr?
+        groq_api_key: SecretStr?
+        guardrails_active() bool
+        max_upload_bytes: int
+        secret(value) str?
     }
     class ProjectConfig {
         name
@@ -61,6 +67,7 @@ classDiagram
         disclaimer
         data_dir: Path
         golden_dataset_path: Path
+        safeguard_policy: str
     }
     class RAGService {
         from_settings(settings)$
@@ -93,4 +100,17 @@ classDiagram
         cases: List~EvalCaseResult~
     }
     QueryArtifacts --> RAGResponse
+    class GuardrailDecision {
+        allowed: bool
+        reason
+        score
+        latency_ms
+    }
+    class SourceManager {
+        list_sources()
+        save_source(filename, content)
+        delete_source(filename)
+        pubmed_status(...) PubMedStatus
+    }
+    SourceManager --> ProjectConfig
 ```

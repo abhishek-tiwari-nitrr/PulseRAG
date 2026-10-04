@@ -17,12 +17,14 @@ flowchart LR
         UI["Dashboard"] --> SVC["RAGService"]
         UI --> EV["Evaluation runner"]
         EV --> SVC
+        UI --> GRD["Guardrails"]
     end
     SVC --> QC[("Qdrant Cloud")]
     SVC --> OAI["OpenAI: embeddings, gpt-4o-mini"]
     SVC --> LP["LlamaParse"]
     SVC --> PM["PubMed"]
     EV --> JDG["OpenAI: gpt-4o judges (DeepEval)"]
+    GRD --> GROQ["Groq: Prompt Guard, safeguard model"]
 ```
 
 ---
@@ -38,6 +40,7 @@ flowchart TB
         VS["views/sources.py"]
         VE["views/evaluations.py"]
         FMT["formatting.py"]
+        VG["views/guardrails.py"]
     end
     subgraph CORE["pulserag.core"]
         SVC["service"]
@@ -47,8 +50,10 @@ flowchart TB
         REG["registry"]
         FND["settings, logging, exceptions, schemas, project"]
         EVL["evaluation: metrics, runner"]
+        GRL["guardrails"]
+        SRM["sources"]
     end
-    PLG["projects.pulserag: config, ingestor, golden dataset"]
+    PLG["projects.pulserag: config, ingestor, golden dataset, safety policy"]
     APP --> VQ
     APP --> VS
     VQ --> SVC
@@ -61,6 +66,11 @@ flowchart TB
     APP --> VE
     VE --> EVL
     EVL --> SVC
+    APP --> VG
+    VQ --> GRL
+    VG --> GRL
+    VS --> SRM
+    SRM --> IDX
     style PLG fill:#fff3e0,stroke:#ef6c00
 ```
 
@@ -77,7 +87,7 @@ sequenceDiagram
     participant ING as PulseRAGIngestor
     participant IDX as indexing
     participant QC as Qdrant Cloud
-    Op->>SRC: Rebuild index now
+    Op->>SRC: Rebuild / Upload / Delete
     SRC->>SVC: rebuild_index()
     SVC->>SVC: lock (non-blocking) or RebuildInProgressError
     SVC->>ING: ingest() PDFs, PubMed, seed documents
@@ -88,6 +98,7 @@ sequenceDiagram
         IDX->>QC: drop collection
         IDX->>IDX: chunk (1024/100), embed with OpenAI
         IDX->>QC: write vectors + metadata
+        IDX->>QC: create keyword indexes (source, query)
         SVC->>SVC: swap in new index, unlock
         SRC->>SRC: notice in session_state, st.rerun()
     end
@@ -99,16 +110,23 @@ sequenceDiagram
 sequenceDiagram
     actor User
     participant ASK as Ask tab
+    participant PG as Groq Prompt Guard
     participant SVC as RAGService
-    participant OAI as OpenAI
-    participant QC as Qdrant Cloud
+    participant SG as Groq safeguard
     User->>ASK: question
-    ASK->>SVC: query()
-    SVC->>OAI: embed question
-    SVC->>QC: top-10 search
-    SVC->>OAI: one compact completion
-    SVC-->>ASK: QueryArtifacts
-    ASK-->>User: answer, confidence, citations, disclaimer
+    ASK->>PG: classify
+    alt score >= threshold
+        ASK-->>User: blocked at input
+    else allowed or guard unavailable
+        ASK->>SVC: query()
+        SVC-->>ASK: QueryArtifacts
+        ASK->>SG: policy + question + draft
+        alt violation
+            ASK-->>User: blocked at output (draft withheld)
+        else allowed
+            ASK-->>User: answer, confidence, citations, disclaimer
+        end
+    end
 ```
 
 ### 4.3 Evaluation Run
@@ -128,7 +146,26 @@ sequenceDiagram
         RUN->>SVC: query(case)
         RUN->>DE: 3 metrics
     end
-    RUN->>RUN: project/data/evals/pulserag_latest.json
+    RUN->>RUN: atomic write data/evals/pulserag_latest.json
     TAB-->>Op: report
+```
+
+### 4.4 The guardrail boundary
+
+```mermaid
+flowchart TB
+    subgraph G["Guarded"]
+        ASK["Ask tab"]
+    end
+    subgraph NG["Unguarded by design"]
+        EVAL["Evaluation runner"]
+    end
+    subgraph P["Probes"]
+        GT["Guardrails tab"]
+    end
+    ASK --> IG["input guard"] --> SVC["RAGService.query"] --> OG["output guard"]
+    EVAL --> SVC
+    GT --> IG
+    GT --> OG
 ```
 

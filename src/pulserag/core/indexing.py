@@ -7,6 +7,7 @@ import threading
 from typing import TYPE_CHECKING, Any
 
 from qdrant_client import QdrantClient
+from qdrant_client.http import models as rest
 
 from pulserag.core.project import ProjectConfig
 from pulserag.core.settings import AppSettings
@@ -28,6 +29,7 @@ __all__ = [
 
 _CLIENT_CACHE: dict[tuple[str, str | None, float], QdrantClient] = {}
 _CLIENT_CACHE_LOCK = threading.Lock()
+_INDEXED_PAYLOAD_FIELDS = ("source", "query")
 
 
 def get_qdrant_client(settings: AppSettings) -> QdrantClient:
@@ -112,7 +114,9 @@ def build_index(
         },
     )
 
-    storage_context = StorageContext.from_defaults(vector_store=build_vector_store(config, settings))
+    storage_context = StorageContext.from_defaults(
+        vector_store=build_vector_store(config, settings)
+    )
 
     splitter = SentenceSplitter(
         chunk_overlap=settings.chunk_overlap, chunk_size=settings.chunk_size
@@ -125,8 +129,26 @@ def build_index(
         show_progress=True,
         embed_model=build_embed_model(settings),
     )
+    _ensure_payload_indexes(client, config.collection_name)
     logger.info("Index Build Complete", extra={"collection": config.collection_name})
     return index
+
+
+def _ensure_payload_indexes(client: QdrantClient, collection_name: str) -> None:
+    """Create keyword payload indexes on the metadata we filter by."""
+    for field in _INDEXED_PAYLOAD_FIELDS:
+        try:
+            client.create_payload_index(
+                collection_name=collection_name,
+                field_name=field,
+                field_schema=rest.PayloadSchemaType.KEYWORD,
+            )
+        except Exception:
+            logger.debug(
+                "Could not create payload index; filters will fall back to a scan.",
+                extra={"collection": collection_name, "field": field},
+                exc_info=True,
+            )
 
 
 def build_embed_model(settings: AppSettings) -> Any:

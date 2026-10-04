@@ -20,6 +20,9 @@ _APP_VARIABLES = (
     "LLAMA_",
     "PUBMED_",
     "INCLUDE_",
+    "GROQ_",
+    "GUARDRAILS_",
+    "PROMPT_GUARD_",
 )
 
 
@@ -60,4 +63,5 @@ def config(tmp_path):
         disclaimer="Not medical advice.",
         data_dir=tmp_path,
         golden_dataset_path=tmp_path / "golden_dataset.json",
+        safeguard_policy="Block personal dosing.",
     )

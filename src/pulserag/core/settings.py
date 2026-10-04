@@ -55,6 +55,9 @@ class AppSettings(BaseSettings):
     groq_prompt_guard_model: str = Field(default="meta-llama/llama-prompt-guard-2-86m")
     groq_safeguard_model: str = Field(default="openai/gpt-oss-120b")
     prompt_guard_threshold: Annotated[float, Field(ge=0.0, le=1.0)] = Field(default=0.5)
+    max_upload_bytes: Annotated[int, Field(gt=0)] = Field(
+        default=25 * 1024 * 1024
+    )  # 25MB
 
     # chunking
     # 2^7 = 128 to 2^13 = 8192

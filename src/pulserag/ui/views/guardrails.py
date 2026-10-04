@@ -67,11 +67,8 @@ def render(service: RAGService) -> None:
 
 def _render_status(settings: AppSettings) -> None:
     """Show whether guardrails are active and how they are configured."""
-    columns = st.columns(4)
+    columns = st.columns(1)
     columns[0].metric("Status", "Active" if settings.guardrails_active else "Inactive")
-    columns[1].metric("Input model", settings.groq_prompt_guard_model)
-    columns[2].metric("Output model", settings.groq_safeguard_model)
-    columns[3].metric("Block threshold", f"{settings.prompt_guard_threshold:.2f}")
 
     if not settings.guardrails_active:
         st.warning(
