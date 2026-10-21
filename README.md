@@ -26,6 +26,14 @@ Everything runs in **one Streamlit process**: the dashboard calls the engine dir
 
 ---
 
+## 🎬 Demo
+
+[![PulseRAG demo video](https://img.youtube.com/vi/iiZ7cKeGzTU/maxresdefault.jpg)](https://youtu.be/iiZ7cKeGzTU)
+
+*Click the image to watch the full walkthrough on YouTube.*
+
+---
+
 ## Documentation
 
 | | |
