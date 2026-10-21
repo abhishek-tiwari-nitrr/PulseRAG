@@ -124,14 +124,17 @@ def _elapsed_ms(started: float) -> float:
 
 
 def _chat_completion(
-    client: httpx.Client, model: str, message: list[dict[str, str]], max_retries: int
+    client: httpx.Client, model: str, message: list[dict[str, str]], max_retries: int, json_mode: bool = False,
 ) -> str:
     """POST a chat completion and return the assistant message text."""
+    payload: dict[str, object] = {"model": model, "messages": message}
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     last_error: Exception = RuntimeError("Guardrail call was never attempted.")
     for attempt in range(max_retries + 1):
         try:
             response = client.post(
-                "/chat/completions", json={"model": model, "messages": message}
+                "/chat/completions", json=payload
             )
             response.raise_for_status()
             content = response.json()["choices"][0]["message"]["content"]
